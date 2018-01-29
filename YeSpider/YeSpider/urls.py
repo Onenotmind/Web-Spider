@@ -16,12 +16,21 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
-from taobao import views
+from taobao.views import products
 from django.views.static import serve
+from taobao.views import search_pro
+from taobao.views import index_init
+from taobao.views import jd_product
+
 admin.autodiscover()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^index$',views.products),
+    # url(r'^index$', products),
+    # url(r'^search$', products),
+    url(r'^index/$', index_init),
+    url(r'^search/$', products),
+    # url(r'^js/$', jd_product),
     url(r'^staticfiles/(?P<path>.*)$',serve,{'document_root':settings.STATIC_ROOT}),
+
 ]

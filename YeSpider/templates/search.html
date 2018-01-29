@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>YeSpider</title>
+    <script src="/staticfiles/js/echarts.js"></script>
+    <script src="/staticfiles/js/china.js"></script>
+    <script src="/staticfiles/js/jquery.min.js"></script>
+    <style>
+     #map-chart {
+     width:50%;
+     height:400px;
+     float:left;
+     margin-left:5%;
+     margin-top:100px;
+     }
+
+     #city-top{
+     width: 35%;
+     height: 400px;
+     float: right;
+     margin-right: 5%;
+     margin-left: 2%;
+     border:1px solid #333;
+     margin-top:100px;
+     }
+     .top_five {
+     width:100%;
+     height:16%;
+     text-align:center;
+     line-height:60px;
+     font-size:20px;
+     }
+     .top_name {
+     float:left;
+     width:50%;
+     height:100%;
+     }
+     .top_sale {
+     float:left;
+     width:25%;
+     height:100%
+     }
+     .top_price{
+     float:left;
+     width:20%;
+     height:100%
+     }
+    </style>
+</head>
+<body>
+<h2 style="text-align:center;">小型爬虫系统数据可视化界面</h2>
+<div id="map-chart"></div>
+<div id="city-top">
+    <!--<div class="top_five" >-->
+        <!--<div class="top_name">商店名</div>-->
+        <!--<div class="top_sale">销量</div>-->
+        <!--<div class="top_price">价格</div>-->
+    <!--</div>-->
+</div>
+<!--{% block content %}-->
+    <!--{% for p in posts %}-->
+        <!--<div>{{ p.shop }}</div>-->
+    <!--{% endfor %}-->
+<!--{% endblock %}-->
+<script type="text/javascript">
+    var data_zhejiang = {{ location_query_zhejiang|safe }};
+    var data_beijing = {{ location_query_beijing|safe }};
+    var data_shanghai = {{ location_query_shanghai|safe }};
+    var data_fujian = {{ location_query_fujian|safe }};
+    var data_sichuan = {{ location_query_sichuan|safe }};
+    var data_chongqing = {{ location_query_chongqing|safe }};
+    var data_hubei = {{ location_query_hubei|safe }};
+    var data_shanxi = {{ location_query_shanxi|safe }};
+    var data_guangdong = {{ location_query_guangdong|safe }};
+    var data_jiangsu = {{ location_query_jiangsu|safe }};
+
+    var zhejiang_data = JSON.parse(data_zhejiang.data);
+    var beijing_data = JSON.parse(data_beijing.data);
+    var shanghai_data = JSON.parse(data_shanghai.data);
+    var fujian_data = JSON.parse(data_fujian.data);
+    var sichuan_data = JSON.parse(data_sichuan.data);
+    var chongqing_data = JSON.parse(data_chongqing.data);
+    var hubei_data = JSON.parse(data_hubei.data);
+    var shanxi_data = JSON.parse(data_shanxi.data);
+    var guangdong_data = JSON.parse(data_guangdong.data);
+    var jiangsu_data = JSON.parse(data_jiangsu.data);
+
+    var myChart = echarts.init(document.getElementById('map-chart'));
+    var myLineChart= echarts.init(document.getElementById('city-top'));
+	var geoCoordMap = {
+    "北京": [116.46, 39.92],
+    "南京": [118.78, 32.04],
+    "浙江": [120.15, 30.27],
+    "福建": [119.29, 26.07],
+    "重庆": [106.91, 29.43],
+    "广州": [113.26, 23.13],
+    "上海": [121.48, 31.22],
+    "成都": [104.06, 30.67],
+    "武汉": [114.31, 30.52],
+    "陕西": [108.95, 34.27],
+};
+
+
+var data = [{
+    name: "北京",
+    value: data_beijing.num
+}, {
+    name: "南京",
+    value: data_jiangsu.num
+}, {
+    name: "浙江",
+    value: data_zhejiang.num
+}, {
+    name: "福建",
+    value: data_fujian.num
+}, {
+    name: "重庆",
+    value: data_chongqing.num
+}, {
+    name: "广州",
+    value: data_guangdong.num
+}, {
+    name: "上海",
+    value: data_shanghai.num
+}, {
+    name: "成都",
+    value: data_sichuan.num
+}, {
+    name: "武汉",
+    value: data_hubei.num
+}, {
+    name: "陕西",
+    value: data_shanxi.num
+}];
+
+<!--var data = [{-->
+    <!--name: "北京",-->
+    <!--value: 38-->
+<!--}, {-->
+    <!--name: "南京",-->
+    <!--value: data_zhejiang.num-->
+<!--}, {-->
+    <!--name: "吉林",-->
+    <!--value: 74-->
+<!--}, {-->
+    <!--name: "上海",-->
+    <!--value: 33-->
+<!--}, {-->
+    <!--name: "成都",-->
+    <!--value: 192-->
+<!--}, {-->
+    <!--name: "哈尔滨",-->
+    <!--value: 35-->
+<!--}, {-->
+    <!--name: "沈阳",-->
+    <!--value: 0-->
+<!--}, {-->
+    <!--name: "武汉",-->
+    <!--value: 36-->
+<!--}, {-->
+    <!--name: "石家庄",-->
+    <!--value: 32-->
+<!--}, {-->
+    <!--name: "天津",-->
+    <!--value: 7-->
+<!--}, {-->
+    <!--name: "太原",-->
+    <!--value: 1-->
+<!--}, {-->
+    <!--name: "西安",-->
+    <!--value: 63-->
+<!--}, {-->
+    <!--name: "南宁",-->
+    <!--value: 29-->
+<!--}, {-->
+    <!--name: "南昌",-->
+    <!--value: 48-->
+<!--}, {-->
+    <!--name: "济南",-->
+    <!--value: 61-->
+<!--}];-->
+var convertData = function(data) {
+    var res = [];
+    for (var i = 0; i < data.length; i++) {
+        var geoCoord = geoCoordMap[data[i].name];
+        if (geoCoord) {
+            res.push({
+                name: data[i].name,
+                value: geoCoord.concat(data[i].value)
+            });
+        }
+    }
+    return res;
+};
+
+var convertedData = [
+    convertData(data),
+    convertData(data.sort(function(a, b) {
+        return b.value - a.value;
+    }).slice(0, 6))
+];
+data.sort(function(a,b){
+ return    a.value-b.value;
+})
+
+var selectedItems = [];
+    var categoryData = [];
+    var barData = [];
+ //   var maxBar = 30;
+    var sum = 0;
+    var count = data.length;
+    for(var i=0;i<data.length;i++){
+    categoryData.push(data[i].name);
+    barData.push(data[i].value);
+    sum+=data[i].value;
+    }
+console.log(categoryData);
+console.log(sum+"   "+count)
+option = {
+    backgroundColor: '#404a59',
+    animation: true,
+    animationDuration: 1000,
+    animationEasing: 'cubicInOut',
+    animationDurationUpdate: 1000,
+    animationEasingUpdate: 'cubicInOut',
+    title: [{
+        text: '淘宝宝贝主要城市分布图',
+        subtext: '',
+        left: 'center',
+        textStyle: {
+            color: '#fff'
+        }
+    }, {
+        id: 'statistic',
+        text: count ? '主要城市平均宝贝量: ' +parseInt((sum / count).toFixed(4)) : '',
+        right: 120,
+        top: 40,
+        width: 100,
+        textStyle: {
+            color: '#fff',
+            fontSize: 16
+        }
+    }],
+    toolbox: {
+        iconStyle: {
+            normal: {
+                borderColor: '#fff'
+            },
+            emphasis: {
+                borderColor: '#b1e4ff'
+            }
+        },
+        feature: {
+            dataZoom: {},
+            brush: {
+                type: ['rect', 'polygon', 'clear']
+            },
+            saveAsImage: {
+                show: true
+            }
+        }
+    },
+    brush: {
+        outOfBrush: {
+            color: '#abc'
+        },
+        brushStyle: {
+            borderWidth: 2,
+            color: 'rgba(0,0,0,0.2)',
+            borderColor: 'rgba(0,0,0,0.5)',
+        },
+        seriesIndex: [0, 1],
+        throttleType: 'debounce',
+        throttleDelay: 300,
+        geoIndex: 0
+    },
+    geo: {
+        map: 'china',
+        left: '10',
+        right: '35%',
+        center: [117.98561551896913, 31.205000490896193],
+        zoom: 1.5,
+        label: {
+            emphasis: {
+                show: false
+            }
+        },
+        roam: true,
+        itemStyle: {
+            normal: {
+                areaColor: '#323c48',
+                borderColor: '#111'
+            },
+            emphasis: {
+                areaColor: '#2a333d'
+            }
+        }
+    },
+    tooltip: {
+        trigger: 'item'
+    },
+    grid: {
+        right: 40,
+        top: 100,
+        bottom: 40,
+        width: '30%'
+    },
+    xAxis: {
+        type: 'value',
+        scale: true,
+        position: 'top',
+        boundaryGap: false,
+        splitLine: {
+            show: false
+        },
+        axisLine: {
+            show: false
+        },
+        axisTick: {
+            show: false
+        },
+        axisLabel: {
+            margin: 2,
+            textStyle: {
+                color: '#aaa'
+            }
+        },
+    },
+    yAxis: {
+        type: 'category',
+        //  name: 'TOP 20',
+        nameGap: 16,
+        axisLine: {
+            show: true,
+            lineStyle: {
+                color: '#ddd'
+            }
+        },
+        axisTick: {
+            show: false,
+            lineStyle: {
+                color: '#ddd'
+            }
+        },
+        axisLabel: {
+            interval: 0,
+            textStyle: {
+                color: '#ddd'
+            }
+        },
+        data: categoryData
+    },
+    series: [{
+        // name: '',
+        type: 'scatter',
+        coordinateSystem: 'geo',
+        data: convertedData[0],
+        symbolSize: function(val) {
+            return Math.max(val[2] / 10, 8);
+        },
+        label: {
+            normal: {
+                formatter: '{b}',
+                position: 'right',
+                show: false
+            },
+            emphasis: {
+                show: true
+            }
+        },
+        itemStyle: {
+            normal: {
+                color: '#ddb926',
+                position: 'right',
+                show: true
+            }
+        }
+    }, {
+        //  name: 'Top 5',
+        type: 'effectScatter',
+        coordinateSystem: 'geo',
+        data: convertedData[0],
+        symbolSize: function(val) {
+            return Math.max(val[2] / 10, 8);
+        },
+        showEffectOn: 'emphasis',
+        rippleEffect: {
+            brushType: 'stroke'
+        },
+        hoverAnimation: true,
+        label: {
+            normal: {
+                formatter: '{b}',
+                position: 'right',
+                show: true
+            }
+        },
+        itemStyle: {
+            normal: {
+                color: '#f4e925',
+                shadowBlur: 10,
+                shadowColor: '#333'
+            }
+        },
+        zlevel: 1
+    }, {
+        id: 'bar',
+        zlevel: 2,
+        type: 'bar',
+        symbol: 'none',
+        itemStyle: {
+            normal: {
+                color: '#ddb926'
+            }
+        },
+
+        data: data
+    }]
+};
+
+  lineshop = [];
+  linesale = [];
+var lineoption = {
+    backgroundColor: "#263559",
+    color: ["#cff7cd"],
+    textStyle: {
+        color: "#d7d7d7"
+    },
+    legend: {
+        right: 10,
+        width: 500,
+        itemWidth: 80,
+        textStyle: {
+            color: "#d7d7d7"
+        },
+        data: ['预期人数']
+    },
+    xAxis: [{
+        type: 'category',
+        axisTick:{
+            show:false
+        },
+
+        data: lineshop
+    }],
+    yAxis: [{
+        type: 'value',
+        name:"销量",
+        axisTick:{
+            show:false
+        },
+        axisLine:{
+            show:false
+        },
+        splitLine:{
+            lineStyle:{
+                color:"#333333"
+            }
+        },
+    }],
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: { // 坐标轴指示器，坐标轴触发有效
+            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+        }
+    },
+    series: [{
+        name: '销量',
+        type: 'bar',
+        //barWidth: 10,
+        itemStyle:{
+          normal:{
+              barBorderRadius:6
+          }
+        },
+        data: linesale
+    }]
+}
+
+myLineChart.setOption(lineoption);
+
+//  var myChart= echarts.init(document.getElementById('map'));
+  myChart.setOption(option);
+//myChart.on('brushselected', renderBrushed);
+  myChart.on('click',function(params){
+  lineshop = [];
+  linesale = [];
+    if(params.name == '北京') {
+    for(var i=0;i<5;i++){
+    lineshop.push(beijing_data[i].shop);
+    linesale.push(beijing_data[i].deal);
+    }
+    console.log(lineshop);
+        myLineChart.setOption({
+        xAxis: {
+            data: lineshop
+        },
+        series: [{
+            name:'销量',
+            data: linesale
+        }]
+    });
+}else if(params.name == '上海') {
+    for(var i=0;i<5;i++){
+    lineshop.push(shanghai_data[i].shop);
+    linesale.push(shanghai_data[i].deal);
+    }
+    console.log(lineshop);
+        myLineChart.setOption({
+        xAxis: {
+            data: lineshop
+        },
+        series: [{
+            name:'销量',
+            data: linesale
+        }]
+    });
+
+}else if(params.name == '浙江') {
+    for(var i=0;i<5;i++){
+    lineshop.push(zhejiang_data[i].shop);
+    linesale.push(zhejiang_data[i].deal);
+    }
+    console.log(lineshop);
+        myLineChart.setOption({
+        xAxis: {
+            data: lineshop
+        },
+        series: [{
+            name:'销量',
+            data: linesale
+        }]
+    });
+
+}else if(params.name == '南京') {
+    for(var i=0;i<5;i++){
+    lineshop.push(jiangsu_data[i].shop);
+    linesale.push(jiangsu_data[i].deal);
+    }
+    console.log(lineshop);
+        myLineChart.setOption({
+        xAxis: {
+            data: lineshop
+        },
+        series: [{
+            name:'销量',
+            data: linesale
+        }]
+    });
+
+}else if(params.name == '福建') {
+
+}else if(params.name == '成都') {
+
+}else if(params.name == '重庆') {
+
+}else if(params.name == '武汉') {
+
+}
+  });
+
+  function renderBrushed(params) {
+    var mainSeries = params.batch[0].selected[0];
+
+    var selectedItems = [];
+    var categoryData = [];
+    var barData = [];
+    var maxBar = 30;
+    var sum = 0;
+    var count = 0;
+
+    for (var i = 0; i < mainSeries.dataIndex.length; i++) {
+        var rawIndex = mainSeries.dataIndex[i];
+        var dataItem = convertedData[0][rawIndex];
+        var pmValue = dataItem.value[2];
+
+        sum += pmValue;
+        count++;
+
+        selectedItems.push(dataItem);
+    }
+
+       selectedItems.sort(function (a, b) {
+        //   return b.value[2] - a.value[2];
+        return a.value-b.value;
+       });
+
+    for (var i = 0; i < Math.min(selectedItems.length, maxBar); i++) {
+        categoryData.push(selectedItems[i].name);
+        barData.push(selectedItems[i].value[2]);
+    }
+
+    this.setOption({
+        yAxis: {
+            data: categoryData
+        },
+        xAxis: {
+            axisLabel: {
+                show: !!count
+            }
+        },
+        title: {
+            id: 'statistic',
+            text: count ? '平均: ' + (sum / count).toFixed(4) : ''
+        },
+        series: {
+            id: 'bar',
+            //        sort:'descending',
+            data: barData
+        }
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>YeSpider</title>
+    <script src="/staticfiles/js/echarts.js"></script>
+    <script src="/staticfiles/js/jquery.min.js"></script>
+    <style type="text/css">
+    	#jd-pie {
+    		width: 60%;
+    		margin-left: 20%;
+    		height:350px;
+    	}
+
+    	.jd-product {
+    		width:60%;
+    		margin-left: 20%;
+    	}
+    	.jd-product-header {
+    		height:25px;
+    		font-size: 14px;
+    		line-height: 25px;
+    		text-align: center;
+    		border:1px solid #ddd;
+    	}
+    	.product-header {
+    		width: 30%;
+    		height: 25px;
+    		float: left;
+    		border-right:1px solid #ddd;
+    	}
+    	.product-title {
+    		width: 50%;
+    		height: 25px;
+    		float: left;
+    		border-right:1px solid #ddd;
+    	}
+    	.product-price {
+    		width: 18%;
+    		height: 25px;
+    		float: left;
+    	}
+    	.item-header {
+    		width: 30%;
+    		height: 25px;
+    		float: left;
+    	}
+    	.item-title {
+    		width: 50%;
+    		height: 25px;
+    		float: left;
+    	}
+    	.item-price {
+    		width: 18%;
+    		height: 25px;
+    		float: left;
+    	}
+    	.item-product-header {
+    		height:75px;
+    		font-size: 14px;
+    		line-height: 25px;
+    		text-align: center;
+    		border:1px solid #ddd;
+    		border-top:0;
+    	}
+    </style>
+</head>
+<body>
+<div id="jd-pie"></div>
+<div class="jd-product">
+	<div class="jd-product-header" style="font-weight: 600;">
+		<div class="product-header">商品品牌</div>
+		<div class="product-title">商品名</div>
+		<div class="product-price">价格</div>
+	</div>
+</div>
+<div id="item-content">
+<div class="jd-product" >
+	<div class="item-product-header">
+		<div class="item-header">爱国者官方旗舰店</div>
+		<div class="item-title">爱国者（aigo）20000毫安 E20000+ 移动电源/ 充电宝 聚合物电芯Type-C/安卓/苹果 接口三进三出数显屏 白色</div>
+		<div class="item-price">￥ 139.00</div>
+	</div>
+</div>
+</div>
+</body>
+<script type="text/javascript">
+var xiaomi = {{ xiaomi|safe }};
+var aiguozhe = {{ aiguozhe|safe }};
+console.log(aiguozhe.length);
+var myChart = echarts.init(document.getElementById('jd-pie'));
+var myoption = {
+    title : {
+        text: '某站点用户访问来源',
+        subtext: '纯属虚构',
+        x:'center'
+    },
+    tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+    },
+    legend: {
+        orient: 'vertical',
+        left: 'left',
+        data: ['爱国者官方旗舰店','罗马仕官方旗舰店','小米官方旗舰店','品胜官方旗舰店','荣耀官方旗舰店']
+    },
+    series : [
+        {
+            name: '访问来源',
+            type: 'pie',
+            radius : '55%',
+            center: ['50%', '60%'],
+            data:[
+                {value:15, name:'爱国者官方旗舰店'},
+                {value:14, name:'罗马仕官方旗舰店'},
+                {value:6, name:'小米官方旗舰店'},
+                {value:5, name:'品胜官方旗舰店'},
+                {value:4, name:'荣耀官方旗舰店'}
+            ],
+            itemStyle: {
+                emphasis: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+            }
+        }
+    ]
+};
+
+myChart.setOption(myoption);
+myChart.on('click',function(params){
+	console.log(params.name);
+	if(params.name == '爱国者官方旗舰店') {
+		var items = '';
+		for(var i=0;i<aiguozhe.length;i++){
+			items = items+'<div class="jd-product"><div class="item-header">'+aiguozhe[i].shop+'</div><div class="item-title">'+aiguozhe[i].title+'</div><div class="item-price">'+aiguozhe[i].price+'</div></div>';
+		}
+		$('#item-content').html(items);
+	}
+	});
+</script>
+</html>
